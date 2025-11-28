@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Bookings - RentCam</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #4F46E5; color: white; border: none; border-radius: 5px; }
+        button:hover { background: #4338CA; }
+        .order { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #4F46E5; }
+        pre { background: #1f2937; color: #10b981; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        h2 { color: #1f2937; }
+        .success { color: #10b981; font-weight: bold; }
+        .error { color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 RentCam Bookings Test</h1>
+        
+        <h2>1. Create Test Order</h2>
+        <button onclick="createTestOrder()">Create Test Booking</button>
+        <button onclick="createMultipleOrders()">Create 3 Test Bookings</button>
+        
+        <h2>2. View Orders</h2>
+        <button onclick="viewOrders()">View All Bookings</button>
+        <button onclick="viewRawData()">View Raw localStorage Data</button>
+        
+        <h2>3. Clear Data</h2>
+        <button onclick="clearOrders()" style="background: #ef4444;">Clear All Bookings</button>
+        <button onclick="clearAllData()" style="background: #dc2626;">Clear All localStorage</button>
+        
+        <div id="output"></div>
+    </div>
+
+    <script>
+        function createTestOrder() {
+            const testOrder = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                status: 'pending',
+                items: [
+                    {
+                        id: 1,
+                        name: 'Canon EOS R5 Body',
+                        price: '₹5,499',
+                        image: '/image/download.jpeg',
+                        category: 'cameras',
+                        location: 'Full-frame Mirrorless',
+                        deposit: '₹30,000'
+                    }
+                ],
+                form: {
+                    name: 'Test User',
+                    address: '123 Test Street, Test City',
+                    phone: '9876543210',
+                    payment: 'cod'
+                },
+                totals: {
+                    perDaySum: 5499,
+                    days: 1,
+                    total: 5499
+                }
+            };
+
+            // Get existing orders
+            const ordersStr = localStorage.getItem('user_orders');
+            const orders = ordersStr ? JSON.parse(ordersStr) : [];
+            
+            // Add new order
+            orders.unshift(testOrder);
+            
+            // Save back
+            localStorage.setItem('user_orders', JSON.stringify(orders));
+            
+            showOutput(`<p class="success">✅ Test order created! ID: ${testOrder.id}</p>
+                       <p>Total orders: ${orders.length}</p>`);
+        }
+
+        function createMultipleOrders() {
+            const cameras = [
+                { id: 1, name: 'Canon EOS R5', price: '₹5,499' },
+                { id: 2, name: 'Sony A7S III', price: '₹4,999' },
+                { id: 3, name: 'Canon RF 24-70mm', price: '₹1,499' }
+            ];
+
+            const ordersStr = localStorage.getItem('user_orders');
+            const orders = ordersStr ? JSON.parse(ordersStr) : [];
+
+            cameras.forEach((camera, index) => {
+                const order = {
+                    id: Date.now() + index,
+                    date: new Date().toISOString(),
+                    status: 'pending',
+                    items: [{
+                        ...camera,
+                        image: '/image/test.jpg',
+                        category: 'cameras',
+                        location: 'Test Location',
+                        deposit: '₹10,000'
+                    }],
+                    form: {
+                        name: `Test User ${index + 1}`,
+                        address: `${index + 1}23 Test Street`,
+                        phone: `987654321${index}`,
+                        payment: 'cod'
+                    },
+                    totals: {
+                        perDaySum: parseInt(camera.price.replace(/[^0-9]/g, '')),
+                        days: 1,
+                        total: parseInt(camera.price.replace(/[^0-9]/g, ''))
+                    }
+                };
+                orders.unshift(order);
+            });
+
+            localStorage.setItem('user_orders', JSON.stringify(orders));
+            showOutput(`<p class="success">✅ Created 3 test orders!</p>
+                       <p>Total orders: ${orders.length}</p>`);
+        }
+
+        function viewOrders() {
+            const ordersStr = localStorage.getItem('user_orders');
+            if (!ordersStr) {
+                showOutput('<p class="error">❌ No orders found in localStorage</p>');
+                return;
+            }
+
+            const orders = JSON.parse(ordersStr);
+            let html = `<h3 class="success">✅ Found ${orders.length} order(s)</h3>`;
+            
+            orders.forEach((order, index) => {
+                html += `
+                    <div class="order">
+                        <strong>Order #${index + 1}</strong><br>
+                        ID: ${order.id}<br>
+                        Date: ${new Date(order.date).toLocaleString()}<br>
+                        Status: ${order.status}<br>
+                        Customer: ${order.form?.name}<br>
+                        Items: ${order.items?.length || 0}<br>
+                        Total: ₹${order.totals?.total || 0}
+                    </div>
+                `;
+            });
+
+            showOutput(html);
+        }
+
+        function viewRawData() {
+            const data = localStorage.getItem('user_orders');
+            if (!data) {
+                showOutput('<p class="error">❌ No data in localStorage</p>');
+                return;
+            }
+
+            showOutput(`<h3>Raw localStorage Data:</h3><pre>${data}</pre>`);
+        }
+
+        function clearOrders() {
+            if (confirm('Clear all bookings?')) {
+                localStorage.removeItem('user_orders');
+                showOutput('<p class="success">✅ All bookings cleared!</p>');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Clear ALL localStorage data?')) {
+                localStorage.clear();
+                showOutput('<p class="success">✅ All localStorage data cleared!</p>');
+            }
+        }
+
+        function showOutput(html) {
+            document.getElementById('output').innerHTML = html;
+        }
+
+        // Auto-check on load
+        window.onload = function() {
+            const ordersStr = localStorage.getItem('user_orders');
+            const count = ordersStr ? JSON.parse(ordersStr).length : 0;
+            showOutput(`<p>Current bookings in storage: <strong>${count}</strong></p>`);
+        };
+    </script>
+</body>
+</html>
