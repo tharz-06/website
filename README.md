@@ -149,5 +149,5 @@ markdown
 ## Contact
 
 - If you want to improve the project or collaborate, feel free to open an issue or pull request.
-> email:thaarani013@gmail.com
-> Github:thar_06
+- email:thaarani013@gmail.com
+- Github:thar_06
